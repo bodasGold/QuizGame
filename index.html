@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 40px;
+            margin: 0;
+            height: 100vh;
+            /* altura total de la pantalla */
+            display: flex;
+            flex-direction: column;
+            background: #f9f9f9;
+        }
+
+        /* T�tulo */
+        #titleID {
+            font-size: 35px;
+            font-weight: bold;
+            margin: auto;
+            margin-top: 5px;
+            max-width: 50%;
+            word-wrap: break-word;
+            /* 🔹 permite cortar palabras largas */
+            white-space: normal;
+            /* 🔹 permite que el texto haga saltos de línea */
+        }
+
+        /* Texto auxiliar */
+        #buttonsBoxID {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        /* Contenedor principal */
+        #container {
+            margin: 20px auto;
+            width: 80%;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            white-space: pre-wrap;
+            padding: 10px;
+            height: calc(100vh - 100px);
+        }
+
+        /* Bot�n: A�adir t�tulo (arriba-izquierda) */
+        #addTitleBtn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 8px 12px;
+            background: #0e7c2f;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #addTitleBtn:hover {
+            background: #0b6827;
+        }
+
+        #downloadJsonBtn {
+            position: absolute;
+            top: 50px;
+            right: 15px;
+            padding: 8px 12px;
+            background: #0e7c2f;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #downloadJsonBtn:hover {
+            background: #0b6827;
+        }
+
+        /* Bot�n: Subir JSON (arriba-derecha) */
+        #uploadJsonBtn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 8px 12px;
+            background: #0078d7;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            padding: 8px 12px;
+            background: #0078d7;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #uploadJsonBtn:hover {
+            background: #005fa3;
+        }
+
+        /* Input file oculto */
+        #fileInput {
+            display: none;
+        }
+
+        /* Pop-up */
+        #popup {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #popupBox {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            max-width: 320px;
+            width: 90%;
+        }
+
+        #popupBox h3 {
+            margin-top: 0;
+        }
+
+        #newTitle {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: flex-end;
+        }
+
+        .popup-actions button {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: none;
+        }
+
+        .row {
+            width: 98%;
+            margin: auto;
+            display: flex;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+
+        .col {
+            margin: auto;
+            width: 45%;
+            height: 100px;
+        }
+
+        .col .button {
+            width: 100%;
+            height: 100px;
+            border: solid 1px black;
+            background: #f5f5f5;
+            display: flex;
+            /* ?? convierte el div en contenedor flexible */
+            justify-content: center;
+            /* ?? centra horizontalmente */
+            align-items: center;
+            /* ?? centra verticalmente */
+            padding: 8px 12px;
+            background: #0078d7;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Botones superiores -->
+    <button id="addTitleBtn" onclick="openPopup('popUpNewTitle')"></button>
+    <button id="uploadJsonBtn" onclick="loadFile()">?? Subir JSON</button>
+    <button id="downloadJsonBtn" onclick="downloadFile()" hidden>Descargar Datos</button>
+    <input type="file" id="fileInput" accept=".json" />
+
+    <!-- T�tulo -->
+    <h2 id="titleID">Nuevo t&iacute;tulo principal</h2>
+
+    <!-- Texto auxiliar (como en el mock) -->
+    <div id="buttonsBoxID"></div>
+
+    <!-- Contenedor de contenido -->
+    <div id="container"></div>
+
+    <!-- Pop-up para nuevo t�tulo -->
+    <div id="popup" style="display: none;">
+        <div id="popupBox">
+            <div id="popUpNewTitle" class="popUpContent">
+                <h3>Nuevo t&iacute;tulo</h3>
+                <input type="text" maxlength="70" id="newTitle" placeholder="Maxímo 70 caracteres" />
+                <div class="popup-actions">
+                    <button class="btn-secondary" onclick="closePopup()">Cancelar</button>
+                    <button class="btn-primary" onclick="saveTitle()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // --- DOM refs ---
+        const titleEl = document.getElementById("titleID");
+        const container = document.getElementById("container");
+        const fileInput = document.getElementById("fileInput");
+
+        const popup = document.getElementById("popup");
+        const newTitleInput = document.getElementById("newTitle");
+
+        const basicInfo = {
+            "init": "Iniciar Encuesta",
+            "newTitle": "Nuevo Título",
+            "loadQuiz": "Cargar Encuesta",
+            "end": "Finalizar Encuesta"
+        }
+
+        let canIDownloadData = false;
+
+        const loadBasicInfo = () => {
+            document.getElementById('addTitleBtn').innerHTML = basicInfo.newTitle;
+            document.getElementById('uploadJsonBtn').innerHTML = basicInfo.loadQuiz;
+        }
+
+        loadBasicInfo();
+
+
+
+        // --- Inicializar desde localStorage ---
+        window.addEventListener("load", () => {
+            const savedTitle = storage.get("titulo");
+            if (savedTitle) titleEl.textContent = savedTitle;
+
+            const savedJson = storage.get("uploadedJSON");
+        });
+        // --- Helpers de storage ---
+        let actualQuiz = [];
+        const createStartButton = () => {
+            container.innerHTML = `
+            <div class="col"><div class="button" onclick="startQuiz()"><span>${basicInfo.init}<span></div></div>`;
+        }
+
+        createStartButton();
+        const storage = {
+            set(key, value) { localStorage.setItem(key, JSON.stringify(value)); },
+            get(key) {
+                const raw = localStorage.getItem(key);
+                try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+            },
+            remove(key) { localStorage.removeItem(key); }
+        };
+
+
+
+        const startQuiz = () => {
+            canIDownloadData = false;
+            document.getElementById("downloadJsonBtn").hidden = true;
+            actualQuiz = [];
+            const savedJson = storage.get("uploadedJSON");
+            if (!savedJson) {
+                alert("No hay un cuestionario cargado");
+            } else {
+                newQuestion(savedJson[0]);
+            }
+        }
+
+        const endQuiz = () => {
+            addAnswer(actualQuiz);
+            console.log(actualQuiz);
+            actualQuiz = [];
+            createStartButton();
+            canIDownloadData = true;
+            document.getElementById("downloadJsonBtn").hidden = false;
+        }
+
+        const newQuestion = (data) => {
+            let text = `<h1>${data.title}</h1>`;
+            for (let index = 0; index < data.response.length; index++) {
+                const element = data.response[index];
+                if (esPar(index)) {
+                    text += ` <div class="row">
+                    <div class="col">
+                            <div class="button" onclick="loadNewQuestion('${data.id}','${element.title}','${element.to}')">
+                              <span>  ${element.title}<span></div>
+                            </div>`;
+                } else {
+                    text += `
+                    <div class="col">
+                            <div class="button" onclick="loadNewQuestion('${data.id}','${element.title}','${element.to}')">
+                              <span>  ${element.title}<span></div>
+                            </div>
+                        </div>`;
+                }
+                if (index == data.response.length - 1 && esPar(index)) text += `</div>`;
+            }
+            text += "</div>";
+            container.innerHTML = text;
+        }
+
+        const loadNewQuestion = (questionId, answer, nexQuestion) => {
+            actualQuiz.push({ "id": questionId, "answer": answer });
+
+            if (nexQuestion == "") {
+                container.innerHTML = `<div class="col">
+                <div class="button" onclick="endQuiz()"><span>  ${basicInfo.end}<span></div></div>`;
+            } else {
+                const savedJson = storage.get("uploadedJSON");
+                let data;
+                savedJson.forEach(element => {
+                    if (element.id == nexQuestion) {
+                        data = element;
+                        return;
+                    }
+                });
+                newQuestion(data);
+
+            }
+
+        }
+
+        function esPar(num) {
+            return num % 2 === 0;
+        }
+
+        // --- Pop-up t�tulo ---
+        function openPopup(popUpName) {
+            popup.style.display = "flex";
+            newTitleInput.value = "";
+            // peque�o delay para focus en m�viles
+            document.querySelectorAll('.popUpContent').forEach(el => el.hidden = true);
+            document.getElementById(popUpName).hidden = false;
+            setTimeout(() => newTitleInput.focus(), 50);
+        }
+        function closePopup() { popup.style.display = "none"; }
+
+        popup.addEventListener("click", (e) => {
+            if (e.target === popup) closePopup(); // cerrar al hacer click fuera
+        });
+
+        // Guardar t�tulo
+        function saveTitle() {
+            const t = newTitleInput.value.trim();
+            if (!t) { alert("Por favor, escribe un t�tulo."); return; }
+            storage.set("titulo", t);
+            titleEl.textContent = t;
+            closePopup();
+        }
+        newTitleInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") saveTitle();
+            if (e.key === "Escape") closePopup();
+        });
+
+        // --- Subir JSON ---
+        function loadFile() { fileInput.click() }
+
+        fileInput.addEventListener("change", (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const json = JSON.parse(String(e.target.result));
+                    storage.set("uploadedJSON", json);
+                } catch (err) {
+                    alert("? El archivo no es un JSON v�lido.");
+                }
+            };
+            reader.readAsText(file);
+            // permite volver a abrir el mismo archivo seguidas veces
+            fileInput.value = "";
+        });
+        const STORAGE_KEY = "quiz:respuestas";
+
+        // ?? Leer todas las respuestas
+        function readAll() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        // ?? Guardar una nueva respuesta (se a�ade al final)
+        function addAnswer(answerObj) {
+            const all = readAll();
+            all.push(answerObj);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+        }
+
+        // ?? Borrar todas (opcional)
+        function clearAll() {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+
+        const downloadFile = () => {
+            if (!canIDownloadData) {
+                alert("Ahora mismo no es posible descargara los datos");
+                return;
+            }
+            try {
+                const jsonString = JSON.stringify(readAll(), null, 2);
+
+                // 3️⃣ Crear un Blob (archivo virtual en memoria)
+                const blob = new Blob([jsonString], { type: "application/json" });
+
+                // 4️⃣ Crear un enlace de descarga temporal
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = "resultados.json"; // nombre del archivo
+
+                // 5️⃣ Simular clic y limpiar
+                link.click();
+                URL.revokeObjectURL(url);
+                clearAll();
+                document.getElementById("downloadJsonBtn").hidden = true;
+            } catch (error) {
+
+            }
+
+        }
+
+    </script>
+</body>
+
+</html>
