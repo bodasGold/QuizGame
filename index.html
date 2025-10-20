@@ -390,6 +390,7 @@
                 try {
                     const json = JSON.parse(String(e.target.result));
                     storage.set("uploadedJSON", json);
+                    alert("Encuesta Cargada Correctamente");
                 } catch (err) {
                     alert("? El archivo no es un JSON v�lido.");
                 }
@@ -451,5 +452,6 @@
 
     </script>
 </body>
+
 
 </html>
